@@ -1,0 +1,205 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shopping Cart</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    .cart-container {
+      max-width: 800px;
+      margin: 50px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .cart-item {
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 15px;
+      margin-bottom: 15px;
+    }
+    .cart-item:last-child {
+      border-bottom: none;
+    }
+    .cart-title {
+      font-size: 22px;
+      font-weight: bold;
+    }
+    .cart-total {
+      font-size: 18px;
+      font-weight: bold;
+    }
+    .quantity {
+      width: 60px;
+      text-align: center;
+    }
+    .product-image {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2 class="text-center my-4"><i class="fas fa-shopping-cart"></i> Your Shopping Cart</h2>
+    <div class="cart-container">
+      {% if cart_items %}
+        {% for item in cart_items %}
+        <div class="row align-items-center cart-item mb-4">
+            <!-- Image Column (col-md-2) -->
+            <div class="col-md-2 text-center">
+                {% if item.product.image %}
+                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}"
+                         class="img-fluid product-image" style="max-height: 120px;">
+                {% else %}
+                    <p>No Image</p>
+                {% endif %}
+            </div>
+        
+            <!-- Product Details (col-md-5) -->
+            <div class="col-md-5">
+                <h5 class="fw-bold cart-title mb-1">{{ item.product.name }}</h5>
+                <p class="text-muted mb-1">Price: ${{ item.product.price }}</p>
+                <p class="text-muted mb-0">{{ item.product.description }}</p>
+            </div>
+        
+            <!-- Quantity (col-md-2) -->
+            <div class="col-md-2">
+                <input type="number" class="form-control quantity"
+                       value="{{ item.quantity }}" min="1"
+                       data-product-id="{{ item.product.id }}">
+            </div>
+        
+            <!-- Remove Button (col-md-3) -->
+            <div class="col-md-3 text-end">
+                <button class="btn btn-danger remove-btn" data-product-id="{{ item.product.id }}">Remove</button>
+            </div>
+        </div>
+        <hr>
+        
+        {% endfor %}
+        <!-- Total Price -->
+        <h4 class="text-end mt-4">Total: <b id="total-price">${{ total_price }}</b></h4>
+        <!-- Checkout Button -->
+        <div class="text-center mt-4">
+          <button class="btn btn-primary w-100">Proceed to Checkout</button>
+        </div>
+      {% else %}
+        <p class="text-center text-muted">Your cart is empty.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Full JavaScript for Cart Management -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      // ADD TO CART: (If any "add-to-cart" buttons exist on this page)
+      const addToCartButtons = document.querySelectorAll(".add-to-cart-btn");
+      addToCartButtons.forEach(button => {
+        button.addEventListener("click", function() {
+          const productId = this.dataset.productId;
+          fetch("/add-to-cart/" + productId + "/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ product_id: productId })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === "Product added to cart") {
+              // Redirect to the cart page (using URL from urls.py)
+              window.location.href = "/view-cart/";
+            }
+          })
+          .catch(error => console.error("Error:", error));
+        });
+      });
+      
+      // Update Total Price Dynamically
+      function updateTotal() {
+        let total = 0;
+        document.querySelectorAll(".cart-item").forEach(item => {
+          let priceText = item.querySelector("p.text-muted").textContent;
+          let price = parseFloat(priceText.replace("Price: $", "").trim());
+          let quantity = parseInt(item.querySelector(".quantity").value);
+          total += price * quantity;
+        });
+        const totalElement = document.getElementById("total-price");
+        totalElement.textContent = "$" + total.toFixed(2);
+      }
+
+      // Listen for changes on quantity inputs
+      const quantityInputs = document.querySelectorAll(".quantity");
+      quantityInputs.forEach(input => {
+        input.addEventListener("input", function() {
+          updateTotal();
+          const productId = this.dataset.productId;
+          fetch("/update-cart/" + productId + "/", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-CSRFToken": getCookie("csrftoken")
+            },
+            body: JSON.stringify({ quantity: this.value })
+          })
+          .then(response => response.json())
+          .then(data => console.log("Cart updated", data))
+          .catch(error => console.error("Error updating cart:", error));
+        });
+      });
+
+      // Listen for clicks on remove buttons
+      const removeButtons = document.querySelectorAll(".remove-btn");
+      removeButtons.forEach(button => {
+        button.addEventListener("click", function() {
+          if (confirm("Are you sure you want to remove this item?")) {
+            const productId = this.dataset.productId;
+            // Remove item from DOM
+            this.closest(".cart-item").remove();
+            updateTotal();
+            // Remove item from backend
+            fetch("/remove-cart/" + productId + "/", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": getCookie("csrftoken")
+              }
+            })
+            .then(response => response.json())
+            .then(data => console.log("Item removed", data))
+            .catch(error => console.error("Error removing item:", error));
+          }
+        });
+      });
+
+      // Initial call to update total on page load
+      updateTotal();
+
+      // Helper function to get CSRF token for AJAX requests
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          document.cookie.split(";").forEach(cookie => {
+            let trimmed = cookie.trim();
+            if (trimmed.startsWith(name + "=")) {
+              cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+            }
+          });
+        }
+        return cookieValue;
+      }
+    });
+  </script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

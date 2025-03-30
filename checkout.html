@@ -1,0 +1,37 @@
+<h2>Checkout</h2>
+<p>Confirm your order below:</p>
+<div id="checkout-items"></div>
+<p id="checkout-total"></p>
+<button onclick="placeOrder()">Place Order</button>
+
+<script>
+    function loadCheckout() {
+        let cart = JSON.parse(localStorage.getItem("cart")) || [];
+        let checkoutItemsDiv = document.getElementById("checkout-items");
+        let totalPrice = 0;
+
+        if (cart.length === 0) {
+            checkoutItemsDiv.innerHTML = "<p>Your cart is empty.</p>";
+            document.getElementById("checkout-total").innerText = "";
+            return;
+        }
+
+        checkoutItemsDiv.innerHTML = cart.map(item => `
+            <div class="checkout-item">
+                <h3>${item.name}</h3>
+                <p>Price: $${item.price.toFixed(2)}</p>
+            </div>
+        `).join("");
+
+        totalPrice = cart.reduce((sum, item) => sum + item.price, 0);
+        document.getElementById("checkout-total").innerText = "Total: $" + totalPrice.toFixed(2);
+    }
+
+    function placeOrder() {
+        alert("Your order has been placed!");
+        localStorage.removeItem("cart"); // Clear cart after order
+        window.location.href = "/"; // Redirect to home
+    }
+
+    window.onload = loadCheckout;
+</script>
