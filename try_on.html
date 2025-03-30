@@ -1,0 +1,32 @@
+<h2>Upload Your Image</h2>
+<input type="file" id="uploadImage" accept="image/*">
+<button id="processImage">Try On</button>
+<img id="resultImage" style="display:none;">
+<button id="downloadBtn" style="display:none;">Download</button>
+
+<script>
+document.getElementById("processImage").addEventListener("click", function() {
+    let image = document.getElementById("uploadImage").files[0];
+    let formData = new FormData();
+    formData.append("image", image);
+    
+    fetch("{% url 'process_tryon' %}", {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    })
+    .then(response => response.blob())
+    .then(blob => {
+        let imgURL = URL.createObjectURL(blob);
+        document.getElementById("resultImage").src = imgURL;
+        document.getElementById("resultImage").style.display = "block";
+        document.getElementById("downloadBtn").style.display = "block";
+        document.getElementById("downloadBtn").onclick = () => {
+            let a = document.createElement("a");
+            a.href = imgURL;
+            a.download = "tryon_result.png";
+            a.click();
+        };
+    });
+});
+</script>

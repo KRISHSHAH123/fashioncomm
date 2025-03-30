@@ -1,0 +1,266 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #f0f0f0, #dfe6e9);
+            color: #333;
+        }
+
+        /* Header */
+        .shop-header {
+            background: linear-gradient(90deg, #222, #444);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .shop-header h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Search & Filter */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            width: 220px;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .filter-container select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        /* Product Grid */
+        .shop-container {
+            width: 85%;
+            margin: 30px auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .product {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .product:hover {
+            transform: translateY(-8px);
+            box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .product img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .product h2 {
+            font-size: 22px;
+            margin: 12px 0;
+            color: #444;
+        }
+
+        .product p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .product .price {
+            font-size: 20px;
+            font-weight: bold;
+            color: #28a745;
+            margin-bottom: 15px;
+        }
+
+        .product button {
+            background: linear-gradient(45deg, #007bff, #00d4ff);
+            color: white;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .product button:hover {
+            background: linear-gradient(45deg, #0056b3, #008cff);
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(90deg, #222, #444);
+            color: white;
+            font-size: 16px;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="shop-header">
+        <h2>Explore Our Shop</h2>
+        <div class="filter-container">
+            <input type="text" class="search-box" id="searchInput" 
+                   placeholder="Search for products..." 
+                   value="{{ current_search }}"
+                   onkeyup="filterProducts()">
+                   <select id="styleFilter" onchange="filterProducts()">
+                    <option value="all">All Styles</option>
+                    <option value="casual">Casual</option>
+                    <option value="formal">Formal</option>
+                    <option value="party">Party Wear</option>
+                </select>
+            <select id="categoryFilter" onchange="filterProducts()">
+                <option value="all" {% if current_category == 'all' %}selected{% endif %}>All Categories</option>
+                <option value="men" {% if current_category == 'men' %}selected{% endif %}>Men</option>
+                <option value="women" {% if current_category == 'women' %}selected{% endif %}>Women</option>
+                <option value="accessories" {% if current_category == 'accessories' %}selected{% endif %}>Accessories</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Product Grid -->
+
+    <div class="shop-container" id="productContainer">
+        {% for product in products %}
+        <div class="product" data-category="{{ product.category }}" data-style="{{ product.style_type }}">
+
+            <!-- Clickable product area -->
+            <a href="{% url 'product_detail' product.id %}" class="product-link">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <h2>{{ product.name }}</h2>
+                <p>{{ product.description }}</p>
+                <div class="price">${{ product.price }}</div>
+            </a>
+            <!-- Button should not interfere with link -->
+            <button class="add-to-cart" onclick="addToCart(event, '{{ product.id }}')">Add to Cart</button>
+        </div>
+        {% endfor %}
+    </div>
+    <script>
+        function addToCart(event, productId) {
+            event.stopPropagation(); // Prevents click event from triggering link navigation
+            alert("Product " + productId + " added to cart!");
+            // You can add an AJAX call here to update the cart in Django
+        }
+    </script>
+    
+    <style>
+        .product-link {
+            text-decoration: none;
+            color: inherit;
+            display: block; /* Ensures the entire div is clickable */
+        }
+    </style>
+    
+
+    <!-- Footer -->
+    <footer>
+        &copy; 2025 Your Company. All rights reserved.
+    </footer>
+
+    <!-- JavaScript for Filtering and Cart Functionality -->
+    <script>
+        function filterProducts() {
+            let searchInput = document.getElementById("searchInput").value.toLowerCase();
+            let products = document.querySelectorAll(".product");
+            let categoryFilter = document.getElementById("categoryFilter").value;
+            let styleFilter = document.getElementById("styleFilter").value;
+        
+            // Update URL without reloading
+let url = new URL(window.location);
+url.searchParams.set("category", categoryFilter);
+url.searchParams.set("style", styleFilter);
+url.searchParams.set("search", searchInput);
+window.history.pushState({ categoryFilter, styleFilter, searchInput }, '', url);
+
+// Handle Back Button Navigation
+window.onpopstate = function (event) {
+    if (event.state) {
+        // Restore filters when user clicks back
+        document.getElementById("categoryDropdown").value = event.state.categoryFilter;
+        document.getElementById("styleDropdown").value = event.state.styleFilter;
+        document.getElementById("searchBox").value = event.state.searchInput;
+    } else {
+        // If no state, reload the page
+        location.reload();
+    }
+};
+
+            products.forEach(product => {
+                let productName = product.querySelector("h2").innerText.toLowerCase();
+                let productCategory = product.getAttribute("data-category").toLowerCase();
+                let productStyle = product.getAttribute("data-style").toLowerCase();
+        
+                let nameMatch = searchInput === "" || productName.includes(searchInput) || productStyle.includes(searchInput);
+                let categoryMatch = categoryFilter === "all" || productCategory === categoryFilter;
+                let styleMatch = styleFilter === "all" || productStyle === styleFilter;
+        
+                product.style.display = nameMatch && categoryMatch && styleMatch ? "block" : "none";
+            });
+        }
+        
+        // Apply filters on page load
+        function applyFiltersFromURL() {
+            let url = new URL(window.location);
+            let searchInput = url.searchParams.get("search") || "";
+            let categoryFilter = url.searchParams.get("category") || "all";
+            let styleFilter = url.searchParams.get("style") || "all";
+        
+            document.getElementById("searchInput").value = searchInput;
+            document.getElementById("categoryFilter").value = categoryFilter;
+            document.getElementById("styleFilter").value = styleFilter;
+        
+            filterProducts();
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            applyFiltersFromURL();
+            document.getElementById("searchInput").addEventListener('keyup', filterProducts);
+            document.getElementById("categoryFilter").addEventListener('change', filterProducts);
+            document.getElementById("styleFilter").addEventListener('change', filterProducts);
+        });
+        
+        
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

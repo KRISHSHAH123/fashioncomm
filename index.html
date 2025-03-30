@@ -1,0 +1,664 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FashionVibe - Modern E-commerce</title>
+    <style>
+        /* Floating Chatbot Button */
+        #chat-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #e91e63;
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            line-height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease;
+        }
+        #chat-toggle:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Chat Container */
+        #chat-container {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 350px;
+            max-height: 500px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: none;
+            flex-direction: column;
+        }
+        
+        /* Chat Header */
+        #chat-header {
+            background: #e91e63;
+            color: white;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+        }
+        
+        /* Chatbox Styling */
+        #chatbox {
+            height: 350px;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            background: #f9f9f9;
+        }
+        
+        /* Chat Messages */
+        .message {
+            padding: 10px;
+            border-radius: 8px;
+            margin: 5px;
+            max-width: 70%;
+        }
+        .user {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+        }
+        .bot {
+            background: #f1f1f1;
+            color: black;
+            align-self: flex-start;
+        }
+        
+        /* Chat Input */
+        #chat-input-area {
+            display: flex;
+            padding: 10px;
+            background: white;
+        }
+        #chat-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #chat-input:focus {
+            border-color: #e91e63;
+        }
+        #chat-input-area button {
+            padding: 10px;
+            background: #e91e63;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 5px;
+            transition: background 0.3s;
+        }
+        #chat-input-area button:hover {
+            background: #c2185b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        body {
+            background-color: #f0f4f8;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, #ffffff, #f8e1e9);
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            color: #e91e63;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: transform 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 25px;
+        }
+        .nav-links li a {
+            text-decoration: none;
+            color: #34495e;
+            font-weight: 600;
+            font-size: 16px;
+            transition: color 0.3s ease, transform 0.3s ease;
+        }
+        .nav-links li a:hover {
+            color: #e91e63;
+            transform: translateY(-2px);
+        }
+        .cart-icon {
+            cursor: pointer;
+            font-size: 24px;
+            color: #34495e;
+            transition: color 0.3s ease;
+        }
+        .cart-icon:hover {
+            color: #e91e63;
+        }
+        .search-bar {
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.5s ease-out;
+        }
+        .search-bar input {
+            padding: 10px;
+            width: 200px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px 0 0 25px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.3s ease, width 0.3s ease;
+        }
+        .search-bar input:focus {
+            border-color: #e91e63;
+            width: 220px;
+        }
+        .search-bar button {
+            padding: 10px 20px;
+            background: #e91e63;
+            color: #fff;
+            border: none;
+            border-radius: 0 25px 25px 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        .search-bar button:hover {
+            background: #c2185b;
+            transform: scale(1.05);
+        }
+        .hero {
+            height: 80vh;
+            background: linear-gradient(135deg, rgba(233, 30, 99, 0.7), rgba(33, 150, 243, 0.7)), url('https://via.placeholder.com/1920x1080');
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #fff;
+            animation: fadeIn 1.5s ease-in;
+        }
+        .hero h1 {
+            font-size: 50px;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+        .hero p {
+            font-size: 22px;
+            margin-bottom: 25px;
+        }
+        .cta-btn {
+            padding: 14px 35px;
+            background: #2196f3;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .cta-btn:hover {
+            background: #1976d2;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .products {
+            max-width: 1300px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+        .products h2 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 36px;
+            color: #e91e63;
+            text-transform: uppercase;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+        .product-card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: cardFadeIn 0.5s ease-out;
+        }
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        .product-card img {
+            max-width: 100%;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        .product-card:hover img {
+            transform: scale(1.05);
+        }
+        .product-card h3 {
+            margin: 15px 0;
+            font-size: 20px;
+            color: #34495e;
+        }
+        .product-card p {
+            color: #7f8c8d;
+            font-size: 16px;
+        }
+        .product-card button {
+            padding: 12px 25px;
+            background: #e91e63;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: background 0.3s ease, transform 0.3s ease;
+        }
+        .product-card button:hover {
+            background: #c2185b;
+            transform: scale(1.05);
+        }
+        .cart-sidebar {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100%;
+            background: #fff;
+            box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            transition: right 0.3s ease;
+        }
+        .cart-sidebar.active {
+            right: 0;
+        }
+        .cart-items div {
+            margin: 15px 0;
+            color: #34495e;
+        }
+        .checkout-btn {
+            width: 100%;
+            padding: 12px;
+            background: #2196f3;
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .checkout-btn:hover {
+            background: #1976d2;
+        }
+        footer {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: #fff;
+            font-size: 14px;
+        }
+        .pagination {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .pagination a {
+            padding: 12px 18px;
+            margin: 0 8px;
+            text-decoration: none;
+            color: #e91e63;
+            border: 1px solid #e91e63;
+            border-radius: 25px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        .product-link {
+            text-decoration: none;  /* Remove underline */
+            color: inherit;         /* Keep text color */
+            display: block;         /* Ensure it behaves as a block */
+        }
+        
+        .product-card {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 5px;
+            transition: 0.3s;
+        }
+        
+        .product-card:hover {
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .product-card a {
+            text-decoration: none; /* Remove underline */
+            color: inherit; /* Keep default text color */
+        }
+        
+        .pagination a:hover {
+            background: #e91e63;
+            color: #fff;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { transform: translateX(20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes cardFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="logo">FashionVibe</div>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="{% url 'shop' %}">Shop</a></li>
+                <li><a href="#">About</a></li>
+                <li><a href="#">Contact</a></li>
+                <li><a  href="/login/">Login </a></li>
+               <li> <a  href="/signup/">Sign Up</a></li>
+
+                
+            </ul>
+            <div class="nav-right">
+                <div class="search-bar">
+                    <form method="GET" action="">
+                        <input type="text" name="q" placeholder="Search products..." value="{{ request.GET.q }}">
+                        <button type="submit">Search</button>
+                    </form>
+                </div>
+                <div class="cart-icon" onclick="toggleCart()">🛒 <span id="cart-count">0</span></div>
+            </div>
+        </nav>
+    </header>
+    <section class="hero">
+        <h1>Discover the Latest Trends</h1>
+        <p>Shop premium fashion with style and elegance.</p>
+        <button class="cta-btn" onclick="window.location.href='shop'">Shop Now</button>
+    </section>
+    
+    <section class="products">
+        <h2>Trending Collections</h2>
+        <div class="product-grid" id="product-grid">
+            {% for product in trending_products %}
+                <a href="{% url 'product_detail' product.id %}" class="product-link">
+                    <div class="product-card">
+                        <img src="{{ product.image.url }}" alt="{{ product.name }}" loading="lazy">
+                        <h3>{{ product.name }}</h3>
+                        <p>{% if product.price %}${{ product.price }}{% else %}Price TBD{% endif %}</p>
+                        <button onclick="event.stopPropagation(); addToCart({{ product.id }})">Add to Cart</button>
+                    </div>
+                </a>
+            {% empty %}
+                <p>No trending products found.</p>
+            {% endfor %}
+        </div>
+    </section>
+    
+    
+    
+
+        <!-- Pagination -->
+        <div class="pagination">
+            {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Previous</a>
+            {% endif %}
+            <span>Page {{ products.number }} of {{ products.paginator.num_pages }}</span>
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Next</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <div class="cart-sidebar" id="cart-sidebar">
+        <h3>Your Cart</h3>
+        <div id="cart-items"></div>
+        <p>Total: $<span id="cart-total">0</span></p>
+        <button class="checkout-btn">Checkout</button>
+    </div>
+   <!-- Chatbot Floating Button -->
+<div id="chat-toggle" onclick="toggleChat()">
+    💬
+</div>
+
+<!-- Chat Container -->
+<div id="chat-container">
+    <div id="chat-header">
+        <h3>Chat with Us</h3>
+        <button onclick="toggleChat()">✖</button>
+    </div>
+    <div id="chatbox"></div>
+    <div id="chat-input-area">
+        <input type="text" id="chat-input" placeholder="Ask me anything..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+            
+
+    <footer>
+        <p>© 2025 FashionVibe. All rights reserved.</p>
+    </footer>
+
+    <script>
+        let cart = [];
+        const productData = {
+            {% for product in products %}
+                {{ product.id }}: { 
+                    id: {{ product.id }}, 
+                    name: "{{ product.name }}", 
+                    price: {% if product.price %}{{ product.price }}{% else %}0{% endif %}, 
+                    image: "{{ product.image.url }}" 
+                },
+            {% endfor %}
+        };
+
+        function addToCart(productId) {
+            const product = productData[productId];
+            if (product) {
+                cart.push(product);
+                updateCart();
+            }
+        }
+
+        function updateCart() {
+            const cartItems = document.getElementById("cart-items");
+            const cartCount = document.getElementById("cart-count");
+            const cartTotal = document.getElementById("cart-total");
+
+            cartItems.innerHTML = "";
+            cart.forEach(item => {
+                const cartItem = document.createElement("div");
+                cartItem.textContent = `${item.name} - $${item.price}`;
+                cartItems.appendChild(cartItem);
+            });
+
+            cartCount.textContent = cart.length;
+            const total = cart.reduce((sum, item) => sum + parseFloat(item.price), 0);
+            cartTotal.textContent = total.toFixed(2);
+        }
+
+        function toggleCart() {
+            const cartSidebar = document.getElementById("cart-sidebar");
+            cartSidebar.classList.toggle("active");
+        }
+        function toggleChat() {
+            let chatContainer = document.getElementById("chat-container");
+            chatContainer.style.display = chatContainer.style.display === "flex" ? "none" : "flex";
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+        function getCSRFToken() {
+            let cookies = document.cookie.split("; ");
+            for (let cookie of cookies) {
+                if (cookie.startsWith("csrftoken=")) {
+                    return cookie.split("=")[1];
+                }
+            }
+            return "";
+        }
+        function sendMessage() {
+            let userInput = document.getElementById("chat-input").value.trim();
+            if (!userInput) return;
+        
+            let chatbox = document.getElementById("chatbox");
+        
+            // Append user message
+            let userMessage = document.createElement("div");
+            userMessage.classList.add("message", "user");
+            userMessage.innerText = userInput;
+            chatbox.appendChild(userMessage);
+        
+            // Scroll to latest message
+            chatbox.scrollTop = chatbox.scrollHeight;
+        
+            // Define categories and their respective URLs
+            let categories = [
+                { 
+                    keywords: ["women", "womens", "women's", "lady", "female", "ladies", "girls"],
+                    gender: "women"
+                },
+                { 
+                    keywords: ["men", "mens", "men's", "boy", "male", "gents", "gentlemen"],
+                    gender: "men"
+                }
+            ];
+        
+            let styles = [
+                { 
+                    keywords: ["casual", "casual wear", "relaxed", "everyday outfit", "casual outfit"],
+                    style: "casual"
+                },
+                { 
+                    keywords: ["party", "party wear", "clubwear", "night out", "festive"],
+                    style: "party"
+                },
+                { 
+                    keywords: ["formal", "formal wear", "office wear", "business", "professional"],
+                    style: "formal"
+                }
+            ];
+        
+            let baseUrl = "http://127.0.0.1:8000/shop/";
+        
+            let detectedGender = null;
+            let detectedStyle = null;
+        
+            // Check if user input matches a gender
+            for (let category of categories) {
+                if (category.keywords.some(keyword => userInput.toLowerCase().includes(keyword))) {
+                    detectedGender = category.gender;
+                    break;
+                }
+            }
+        
+            // Check if user input matches a style
+            for (let style of styles) {
+                if (style.keywords.some(keyword => userInput.toLowerCase().includes(keyword))) {
+                    detectedStyle = style.style;
+                    break;
+                }
+            }
+        
+            // Construct the correct URL based on input
+            let url = baseUrl + "?category=";
+            let responseMessage = "Check this out: ";
+        
+            if (detectedStyle && detectedGender) {
+                url += `${detectedGender}&style=${detectedStyle}&search=`;
+                responseMessage = `Here are some trendy ${detectedStyle} outfits for ${detectedGender}: `;
+            } else if (detectedStyle) {
+                url += `all&style=${detectedStyle}&search=`;
+                responseMessage = `Here are some trendy ${detectedStyle} outfits: `;
+            } else if (detectedGender) {
+                url += `${detectedGender}&search=`;
+                responseMessage = `Check out the latest fashion for ${detectedGender}: `;
+            } else {
+                // If no match, call Django API
+                fetch("/chatbot/", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                    },
+                    body: JSON.stringify({ message: userInput }),
+                })
+                .then((response) => response.json())
+                .then((data) => {
+                    let botMessage = document.createElement("div");
+                    botMessage.classList.add("message", "bot");
+                    botMessage.innerText = data.response;
+                    chatbox.appendChild(botMessage);
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                })
+                .catch((error) => console.error("Error:", error));
+        
+                document.getElementById("chat-input").value = "";
+                return;
+            }
+        
+            // Append bot message with the correct link
+            let botMessage = document.createElement("div");
+            botMessage.classList.add("message", "bot");
+            botMessage.innerHTML = `${responseMessage} <a href="${url}" target="_blank">Click here</a>`;
+            chatbox.appendChild(botMessage);
+            chatbox.scrollTop = chatbox.scrollHeight;
+        
+            document.getElementById("chat-input").value = "";
+        }
+        
+    </script>
+</body>
+</html>

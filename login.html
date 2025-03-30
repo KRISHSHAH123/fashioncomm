@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Log In - FashionVibe{% endblock title %}
+
+{% block content %}
+<style>
+  .auth-card {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .card-header {
+    text-align: center;
+    padding-bottom: 10px;
+  }
+
+  .form-control {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .alert {
+    margin-bottom: 10px;
+  }
+
+  .card-footer {
+    text-align: center;
+    padding-top: 10px;
+  }
+</style>
+
+<div class="auth-card">
+  <div class="card-header">
+    <h2>Log In</h2>
+  </div>
+
+  <div class="card-body">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <input type="hidden" name="next" value="{{ request.GET.next }}">
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-primary">Log In</button>
+  </form>
+  
+    </form>
+  </div>
+
+  <div class="card-footer">
+    <small>Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>.</small>
+  </div>
+</div>
+{% endblock content %}
